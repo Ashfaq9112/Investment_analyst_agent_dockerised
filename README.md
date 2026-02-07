@@ -36,6 +36,7 @@ This system uses **three specialized AI agents** working together to analyze sto
 - Internet connection (for API calls to Gemini and Yahoo Finance)
 
 ### Option 1: Pull from Docker Hub
+link: https://hub.docker.com/r/ashfaqgg3/autogenagent
 ```bash
 # Pull the image
 docker pull ashfaqgg3/autogenagent
