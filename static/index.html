@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Chat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        gray: {
+                            900: '#111827',
+                            800: '#1f2937',
+                            700: '#374151',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+    <style>
+        .markdown-body {
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .markdown-body p {
+            margin-bottom: 1em;
+        }
+
+        .markdown-body p:last-child {
+            margin-bottom: 0;
+        }
+
+        .markdown-body code {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 0.2em 0.4em;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+
+        .markdown-body pre {
+            background-color: #0d1117;
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin-bottom: 1em;
+        }
+
+        .markdown-body pre code {
+            background-color: transparent;
+            padding: 0;
+            border-radius: 0;
+        }
+
+        .markdown-body ul,
+        .markdown-body ol {
+            margin-bottom: 1em;
+            padding-left: 2em;
+        }
+
+        .markdown-body ul {
+            list-style-type: disc;
+        }
+
+        .markdown-body ol {
+            list-style-type: decimal;
+        }
+
+        .markdown-body h1,
+        .markdown-body h2,
+        .markdown-body h3,
+        .markdown-body h4 {
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+            font-weight: 600;
+        }
+
+        .markdown-body h1 {
+            font-size: 1.5em;
+        }
+
+        .markdown-body h2 {
+            font-size: 1.3em;
+        }
+
+        .markdown-body h3 {
+            font-size: 1.1em;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1f2937;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #4b5563;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+
+        /* Loader animation */
+        .typing-dot {
+            animation: typing 1.4s infinite ease-in-out both;
+        }
+
+        .typing-dot:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+        @keyframes typing {
+
+            0%,
+            80%,
+            100% {
+                transform: scale(0);
+            }
+
+            40% {
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-900 text-gray-100 h-screen flex flex-col font-sans">
+    <!-- Header -->
+    <header class="bg-gray-800 border-b border-gray-700 p-4 shadow-sm z-10">
+        <div class="max-w-4xl mx-auto flex items-center gap-3">
+            <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/20">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
+                    </path>
+                </svg>
+            </div>
+            <div>
+                <h1
+                    class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-emerald-400">
+                    Investment Analyst Agent</h1>
+                <p class="text-xs text-gray-400">AI Agent</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Chat Container -->
+    <main id="chat-container"
+        class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 max-w-4xl w-full mx-auto relative pb-32">
+        <!-- Initial Greeting -->
+        <div class="flex items-start gap-4 animate-[fadeIn_0.5s_ease-out]">
+            <div
+                class="w-8 h-8 rounded bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center flex-shrink-0 text-white font-bold text-sm shadow-lg shadow-blue-500/30">
+                AI
+            </div>
+            <div
+                class="bg-gray-800 border border-gray-700 rounded-2xl rounded-tl-none px-5 py-4 max-w-[85%] sm:max-w-[75%] shadow-sm">
+                <div class="markdown-body">
+                    <p>Hello! I'm your Investment Analyst Agent. What can I help you with today?</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Input Area -->
+    <footer class="bg-gray-800/80 backdrop-blur-md border-t border-gray-700 p-4 fixed bottom-0 w-full z-10">
+        <div class="max-w-4xl mx-auto relative">
+            <form id="chat-form" class="relative flex items-end gap-2">
+                <div class="relative w-full">
+                    <textarea id="user-input" rows="1"
+                        class="w-full bg-gray-900 border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-xl px-4 py-3 placeholder-gray-400 text-gray-100 resize-none pr-12 transition-all outline-none"
+                        placeholder="Message your agent..." style="min-height: 50px; max-height: 200px;"
+                        oninput="this.style.height = '';this.style.height = Math.min(this.scrollHeight, 200) + 'px'"></textarea>
+                </div>
+                <button type="submit" id="submit-btn"
+                    class="bg-blue-600 hover:bg-blue-500 transition-colors text-white h-[50px] w-[50px] flex items-center justify-center rounded-xl flex-shrink-0 shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <svg class="w-5 h-5 -ml-1 -mt-1 transform rotate-45" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                    </svg>
+                </button>
+            </form>
+            <div class="text-center mt-2">
+                <p class="text-[10px] text-gray-500">Responses are generated dynamically.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const chatForm = document.getElementById('chat-form');
+        const userInput = document.getElementById('user-input');
+        const chatContainer = document.getElementById('chat-container');
+        const submitBtn = document.getElementById('submit-btn');
+
+        // Allow 'Enter' to send, 'Shift+Enter' for new line
+        userInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if (this.value.trim() !== '') {
+                    chatForm.dispatchEvent(new Event('submit'));
+                }
+            }
+        });
+
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const message = userInput.value.trim();
+            if (!message) return;
+
+            // Reset input
+            userInput.value = '';
+            userInput.style.height = '50px';
+            userInput.disabled = true;
+            submitBtn.disabled = true;
+
+            // Add user message
+            addMessage('user', message);
+
+            // Add loading state
+            const loadingId = addLoader();
+
+            try {
+                // Determine API endpoint route structure
+                const response = await fetch('/chat/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    // Based on Models.userquery in FastAPI expecting 'userq'
+                    body: JSON.stringify({ userq: message })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                // Remove loader
+                document.getElementById(loadingId).remove();
+
+                // Format markdown and display
+                let agentMessage = data.response;
+                agentMessage = agentMessage.replace(/^\*\*\*$/gm, '---');
+                if (!agentMessage) {
+                    agentMessage = "*(No response generated)*";
+                }
+
+                addMessage('agent', agentMessage, true);
+
+            } catch (error) {
+                console.error('Error fetching response:', error);
+                document.getElementById(loadingId).remove();
+                addMessage('agent', '**Error:** Failed to get response from server. Check if application is running correctly.', true);
+            } finally {
+                userInput.disabled = false;
+                submitBtn.disabled = false;
+                userInput.focus();
+                scrollToBottom();
+            }
+        });
+
+        function addMessage(sender, text, isMarkdown = false) {
+            const div = document.createElement('div');
+            div.className = `flex items-start gap-4 animate-[fadeIn_0.3s_ease-out] ${sender === 'user' ? 'flex-row-reverse' : ''}`;
+
+            const avatar = sender === 'user'
+                ? `<div class="w-8 h-8 rounded bg-gray-600 flex items-center justify-center flex-shrink-0 text-white shadow-sm"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg></div>`
+                : `<div class="w-8 h-8 rounded bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center flex-shrink-0 text-white font-bold text-sm shadow-lg shadow-blue-500/30">AI</div>`;
+
+            let contentHTML = '';
+            if (isMarkdown) {
+                // Parse markdown and sanitize it
+                const rawMarkup = marked.parse(text);
+                const cleanMarkup = DOMPurify.sanitize(rawMarkup);
+                contentHTML = `<div class="markdown-body">${cleanMarkup}</div>`;
+            } else {
+                // Escape simple text to prevent XSS
+                const escapedText = text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                contentHTML = `<div class="whitespace-pre-wrap">${escapedText}</div>`;
+            }
+
+            const bubbleClass = sender === 'user'
+                ? 'bg-blue-600 text-white rounded-2xl rounded-tr-none px-5 py-4 max-w-[85%] sm:max-w-[75%] shadow-md shadow-blue-900/20'
+                : 'bg-gray-800 border border-gray-700 text-gray-100 rounded-2xl rounded-tl-none px-5 py-4 max-w-[85%] sm:max-w-[75%] overflow-hidden shadow-sm shadow-black/10';
+
+            div.innerHTML = `
+                ${avatar}
+                <div class="${bubbleClass}">
+                    ${contentHTML}
+                </div>
+            `;
+
+            chatContainer.appendChild(div);
+            scrollToBottom();
+        }
+
+        function addLoader() {
+            const id = 'loader-' + Date.now();
+            const div = document.createElement('div');
+            div.id = id;
+            div.className = 'flex items-start gap-4 animate-[fadeIn_0.3s_ease-out]';
+
+            div.innerHTML = `
+                <div class="w-8 h-8 rounded bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center flex-shrink-0 text-white font-bold text-sm shadow-lg shadow-blue-500/30">
+                    AI
+                </div>
+                <div class="bg-gray-800 border border-gray-700 rounded-2xl rounded-tl-none px-5 py-4 shadow-sm flex items-center gap-1.5 h-[56px]">
+                    <div class="w-2 h-2 bg-gray-400 rounded-full typing-dot"></div>
+                    <div class="w-2 h-2 bg-gray-400 rounded-full typing-dot"></div>
+                    <div class="w-2 h-2 bg-gray-400 rounded-full typing-dot"></div>
+                </div>
+            `;
+
+            chatContainer.appendChild(div);
+            scrollToBottom();
+            return id;
+        }
+
+        function scrollToBottom() {
+            window.scrollTo({
+                top: document.body.scrollHeight,
+                behavior: 'smooth'
+            });
+            // Alternative layout scrolling
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // Add CSS fade animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+
+</html>
